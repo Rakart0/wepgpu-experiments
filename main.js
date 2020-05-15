@@ -1,5 +1,8 @@
 document.addEventListener( "DOMContentLoaded", init, false );
 
+var vertSpirv = new Uint32Array([119734787, 65536, 524295, 30, 0, 131089, 1, 393227, 1, 1280527431, 1685353262, 808793134, 0, 196622, 0, 1, 589839, 0, 4, 1852399981, 0, 9, 11, 16, 20, 196611, 2, 450, 589828, 1096764487, 1935622738, 1918988389, 1600484449, 1684105331, 1868526181, 1667590754, 29556, 589828, 1096764487, 1935622738, 1768186216, 1818191726, 1969712737, 1600481121, 1882206772, 7037793, 262149, 4, 1852399981, 0, 327685, 9, 1131705711, 1919904879, 0, 262149, 11, 1866690153, 7499628, 393221, 14, 1348430951, 1700164197, 2019914866, 0, 393222, 14, 0, 1348430951, 1953067887, 7237481, 196613, 16, 0, 262149, 20, 1867542121, 115, 262215, 9, 30, 0, 262215, 11, 30, 1, 327752, 14, 0, 11, 0, 196679, 14, 2, 262215, 20, 30, 0, 131091, 2, 196641, 3, 2, 196630, 6, 32, 262167, 7, 6, 3, 262176, 8, 3, 7, 262203, 8, 9, 3, 262176, 10, 1, 7, 262203, 10, 11, 1, 262167, 13, 6, 4, 196638, 14, 13, 262176, 15, 3, 14, 262203, 15, 16, 3, 262165, 17, 32, 1, 262187, 17, 18, 0, 262187, 6, 19, 1048576000, 262203, 10, 20, 1, 262187, 6, 22, 1065353216, 262176, 28, 3, 13, 327734, 2, 4, 0, 3, 131320, 5, 262205, 7, 12, 11, 196670, 9, 12, 262205, 7, 21, 20, 327761, 6, 23, 21, 0, 327761, 6, 24, 21, 1, 327761, 6, 25, 21, 2, 458832, 13, 26, 23, 24, 25, 22, 327822, 13, 27, 26, 19, 327745, 28, 29, 16, 18, 196670, 29, 27, 65789, 65592]);
+var fragSpirv = new Uint32Array([119734787, 65536, 524295, 19, 0, 131089, 1, 393227, 1, 1280527431, 1685353262, 808793134, 0, 196622, 0, 1, 458767, 4, 4, 1852399981, 0, 9, 12, 196624, 4, 7, 196611, 2, 450, 589828, 1096764487, 1935622738, 1918988389, 1600484449, 1684105331, 1868526181, 1667590754, 29556, 589828, 1096764487, 1935622738, 1768186216, 1818191726, 1969712737, 1600481121, 1882206772, 7037793, 262149, 4, 1852399981, 0, 393221, 9, 1182037359, 1130848626, 1919904879, 0, 262149, 12, 1866690153, 7499628, 262215, 9, 30, 0, 262215, 12, 30, 0, 131091, 2, 196641, 3, 2, 196630, 6, 32, 262167, 7, 6, 4, 262176, 8, 3, 7, 262203, 8, 9, 3, 262167, 10, 6, 3, 262176, 11, 1, 10, 262203, 11, 12, 1, 262187, 6, 14, 1065353216, 327734, 2, 4, 0, 3, 131320, 5, 262205, 10, 13, 12, 327761, 6, 15, 13, 0, 327761, 6, 16, 13, 1, 327761, 6, 17, 13, 2, 458832, 7, 18, 15, 16, 17, 14, 196670, 9, 18, 65789, 65592]);
+
 
 async function init()
 {
@@ -70,11 +73,11 @@ let positionBuffer = createBuffer(positions, GPUBufferUsage.VERTEX, device);
 let colorBuffer = createBuffer(colors, GPUBufferUsage.VERTEX, device);
 let indexBuffer = createBuffer(indices, GPUBufferUsage.INDEX, device);
 
-let fragmentShader = await loadShader('shaders/triangle.frag.spv');
-let vertexShader = await loadShader('shaders/triangle.vert.spv');
+let frag = await loadShader("/shaders/triangle.frag.spv")
+let vert = await loadShader("/shaders/triangle.vert.spv")
 
-let fragmentModule = device.createShaderModule(fragmentShader);
-let vertexModule = device.createShaderModule(vertexShader);
+let fragModule = device.createShaderModule({code : frag});
+let vertModule = device.createShaderModule({code : vert});
 
 // Je sais pas ce qu'est cette déclaration cheloue d'array dans le tuto
 // const uniformData = new Float32Array([
@@ -88,6 +91,32 @@ let vertexModule = device.createShaderModule(vertexShader);
 
 //     0.8, 0.2, 0.8, 1.0
 // ]);
+
+
+// // 📁 Bind Group Layout
+// let uniformBindGroupLayout = device.createBindGroupLayout({
+//     bindings: [{
+//         binding: 0,
+//         visibility: GPUShaderStage.VERTEX,
+//         type: "uniform-buffer"
+//     }]
+// });
+
+// // 🗄️ Bind Group
+// // ✍ This would be used when encoding commands
+// let uniformBindGroup = device.createBindGroup({
+//     layout: uniformBindGroupLayout,
+//     bindings: [{
+//         binding: 0,
+//         resource: {
+//             buffer: uniformBuffer
+//         }
+//     }]
+// });
+
+// 🗂️ Pipeline Layout
+// 👩‍🔧 this would be used as a member of a GPUPipelineDescriptor
+let layout = device.createPipelineLayout( {bindGroupLayouts: []});
 
 
 const positionAttribDesc = {
@@ -206,7 +235,6 @@ function encodeCommands() {
     passEncoder.endPass();
 
     queue.submit([ commandEncoder.finish() ]);
-    //pipi
 }
     let render = () => {
         // ⏭ Acquire next image from swapchain
@@ -220,6 +248,7 @@ function encodeCommands() {
         requestAnimationFrame(render);
     };
 
+    render();
 }
 
  function createBuffer(array, usage, device)
@@ -236,9 +265,12 @@ function encodeCommands() {
 
 async function loadShader (shaderPath) 
 {
-    var res = await fetch(new Request(shaderPath), { method: 'GET', mode: 'cors' });
-    console.log(res == null);
-    var arr = res.arrayBuffer();
-    console.log(res.b)
-    return new Uint32Array(arr);
+    let shader;
+    await fetch(new Request(shaderPath), { method: 'GET', mode: 'cors' }). 
+        then(response => response.arrayBuffer().then(arr => shader = new Uint32Array(arr) ));
+
+return shader;    // console.log(res.arrayBuffer().Uint32Array);
+    
+
+    // return new Uint32Array(arr);
 }
