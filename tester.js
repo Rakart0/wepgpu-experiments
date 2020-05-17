@@ -1,79 +1,35 @@
-document.addEventListener( "DOMContentLoaded", init, false );
+async function start()
+{
+
+//On vérifie que le navigateur est compatible WebGPU
+var entry = navigator.gpu;
+if(entry == null)
+{
+    alert("WebGPU n'est pas supporté par ce navigateur");
+    return;
+}
+
+    var engine = new Anjeh(entry,  document.getElementById("canvas"));
+    engine.initialize();
+    engine.configureSwapChain();
+    engine.createTextureViews();
+
+    engine.addObject(new Triangle());
+    
+    engine.loadShaders();
+
+}
+
 
 async function init()
 {
 
-    //On vérifie que le navigateur est compatible WebGPU
-    var entry = navigator.gpu;
-    if(entry == null)
-    {
-        alert("WebGPU n'est pas supporté par ce navigateur");
-        return;
-    }
-
-// var engine = new CoolEngine(entry,  document.getElementById("canvas") );
-// await engine.initialize();
-//Initalisation de l'API
-
-const adapter = await entry.requestAdapter();
-const device = await adapter.requestDevice();
-const queue = device.defaultQueue;
-
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("gpupresent");
-
-const swapChainDesc = {
-    device: device,
-    format: 'bgra8unorm',
-    usage: GPUTextureUsage.OUTPUT_ATTACHMENT | GPUTextureUsage.COPY_SRC
-};
-
-//Création de la swapchain et des framebuffers
-
-const swapchain = ctx.configureSwapChain(swapChainDesc);
-
-const depthTextureDesc = {
-    size: {
-        width: canvas.width,
-        height: canvas.height,
-        depth: 1
-    },
-    mipLevelCount: 1,
-    sampleCount: 1,
-    dimension: '2d',
-    format: 'depth24plus-stencil8',
-    usage: GPUTextureUsage.OUTPUT_ATTACHMENT | GPUTextureUsage.COPY_SRC
-};
-
-var depthTexture = device.createTexture(depthTextureDesc);
-var depthTextureView = depthTexture.createView();
-
-let colorTexture = swapchain.getCurrentTexture();
-let colorTextureView = colorTexture.createView();
-
 //Création des Vertices et Indices buffers
-
-const positions = TrianglePrimitive.vertices;
-
-const colors = new Float32Array([
-    1.0, 0.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 0.0, 1.0 
-]);
-
-
-const indices = new Uint16Array([ 0, 1, 2 ]);
 
 let positionBuffer = createBuffer(positions, GPUBufferUsage.VERTEX, device);
 
 let colorBuffer = createBuffer(colors, GPUBufferUsage.VERTEX, device);
 let indexBuffer = createBuffer(indices, GPUBufferUsage.INDEX, device);
-
-let frag = await loadShader("/shaders/triangle.frag.spv")
-let vert = await loadShader("/shaders/triangle.vert.spv")
-
-let fragModule = device.createShaderModule({code : frag});
-let vertModule = device.createShaderModule({code : vert});
 
 
 
